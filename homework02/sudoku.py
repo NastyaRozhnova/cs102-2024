@@ -32,7 +32,8 @@ def display(grid: tp.List[tp.List[str]]) -> None:
 
 def group(values: tp.List[T], n: int) -> tp.List[tp.List[T]]:
     """
-    Сгруппировать значения values в список, состоящий из списков по n элементов
+    Сгруппировать значения values в список, состоящий
+    из списков по n элементов
     >>> group([1,2,3,4], 2)
     [[1, 2], [3, 4]]
     >>> group([1,2,3,4,5,6,7,8,9], 3)
@@ -136,8 +137,7 @@ def solve(grid: tp.List[tp.List[str]]) -> tp.Optional[tp.List[tp.List[str]]]:
     pos = find_empty_positions(grid)
     if not pos:
         return grid
-    possible_values = find_possible_values(grid, pos)
-    for value in possible_values:
+    for value in find_possible_values(grid, pos):
         grid[pos[0]][pos[1]] = value
         result = solve(grid)
         if result:
@@ -147,19 +147,20 @@ def solve(grid: tp.List[tp.List[str]]) -> tp.Optional[tp.List[tp.List[str]]]:
 
 
 def check_solution(solution: tp.List[tp.List[str]]) -> bool:
-    """Если решение solution верно, то вернуть True, в противном случае False"""
+    """Если решение solution верно, то вернуть True,
+    в противном случае False"""
+    if find_empty_positions(solution):
+        return False
+
+    values = set("123456789")
+
     for i in range(9):
-        row = solution[i]
-        if set(row) != set("123456789"):
+        row = set(get_row(solution, (i, 0)))
+        col = set(get_col(solution, (0, i)))
+        block = set(get_block(solution, (i, i)))
+        if row != values or col != values or block != values:
             return False
-        col = [solution[j][i] for j in range(9)]
-        if set(col) != set("123456789"):
-            return False
-    for block_row in range(0, 9, 3):
-        for block_col in range(0, 9, 3):
-            block = [solution[r][c] for r in range(block_row, block_row + 3) for c in range(block_col, block_col + 3)]
-            if set(block) != set("123456789"):
-                return False
+
     return True
 
 
@@ -187,14 +188,18 @@ def generate_sudoku(n: int) -> tp.List[tp.List[str]]:
     n = max(0, min(81, n))
     grid = [["." for _ in range(9)] for _ in range(9)]
 
-    solve(grid)
+    sudoku = solve(grid)
+
+    if sudoku is None:
+        raise ValueError("Не удалось решить судоку")
 
     pos = [(i, j) for i in range(9) for j in range(9)]
     random.shuffle(pos)
     for i in range(81 - n):
         x, y = pos[i]
-        grid[x][y] = "."
-    return grid
+        sudoku[x][y] = "."
+
+    return sudoku
 
 
 if __name__ == "__main__":
@@ -205,4 +210,5 @@ if __name__ == "__main__":
         if not solution:
             print(f"Puzzle {fname} can't be solved")
         else:
+
             display(solution)
